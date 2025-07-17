@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>İyi Geceler</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(to top, #0b0c2a 0%, #1a1c40 100%);
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .sky {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 70% 20%, #fff 8%, transparent 20%),
+                  url('https://upload.wikimedia.org/wikipedia/commons/4/49/Starry_Night_Sky_Background.png');
+      background-size: cover;
+      z-index: 0;
+    }
+
+    .moon {
+      position: absolute;
+      top: 50px;
+      right: 100px;
+      width: 120px;
+      height: 120px;
+      background: #f0f0f0;
+      border-radius: 50%;
+      box-shadow: 0 0 30px 10px #fff;
+      z-index: 1;
+    }
+
+    .mountains {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 40%;
+      background: url('https://i.imgur.com/FaLRJdG.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: bottom;
+      z-index: 2;
+    }
+
+    .lilies {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      z-index: 3;
+    }
+
+    .lily {
+      width: 80px;
+      height: 120px;
+      background: url('https://i.imgur.com/nEgUkRj.png') no-repeat center/contain;
+      animation: sway 3s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+
+    @keyframes sway {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(3deg); }
+    }
+
+    .message {
+      font-size: 2rem;
+      text-align: center;
+      opacity: 0;
+      z-index: 4;
+    }
+
+    .fireworks {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body>
+  <div class="sky"></div>
+  <div class="moon"></div>
+  <div class="mountains"></div>
+  <div class="lilies">
+    <div class="lily"></div>
+    <div class="lily"></div>
+    <div class="lily"></div>
+    <div class="lily"></div>
+  </div>
+  <div class="message" id="message"></div>
+  <canvas class="fireworks" id="fireworks"></canvas>
+
+  <script>
+    const messages = [
+      "İyi gecelerrr...",
+      "Umarım yarının bugününden çok daha güzel olurr..."
+    ];
+
+    const messageEl = document.getElementById("message");
+
+    function typeMessage(text, callback) {
+      let i = 0;
+      messageEl.textContent = "";
+      messageEl.style.opacity = 1;
+      const interval = setInterval(() => {
+        messageEl.textContent += text[i];
+        i++;
+        if (i === text.length) {
+          clearInterval(interval);
+          setTimeout(() => {
+            messageEl.style.opacity = 0;
+            if (callback) callback();
+          }, 2500);
+        }
+      }, 80);
+    }
+
+    function startSequence() {
+      typeMessage(messages[0], () => {
+        setTimeout(() => {
+          typeMessage(messages[1], launchFireworks);
+        }, 1000);
+      });
+    }
+
+    function launchFireworks() {
+      const canvas = document.getElementById("fireworks");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      let particles = [];
+
+      function createParticle(x, y, color) {
+        return {
+          x,
+          y,
+          radius: Math.random() * 3 + 2,
+          color,
+          angle: Math.random() * 2 * Math.PI,
+          speed: Math.random() * 5 + 2,
+          alpha: 1,
+          decay: 0.01 + Math.random() * 0.02
+        };
+      }
+
+      function explode(x, y) {
+        const colors = ["#ff4444", "#44ff44", "#4444ff", "#ffff44", "#ff44ff"];
+        for (let i = 0; i < 50; i++) {
+          particles.push(createParticle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+        }
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+          p.x += Math.cos(p.angle) * p.speed;
+          p.y += Math.sin(p.angle) * p.speed;
+          p.alpha -= p.decay;
+          if (p.alpha <= 0) particles.splice(i, 1);
+          else {
+            ctx.globalAlpha = p.alpha;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+          }
+        });
+        requestAnimationFrame(animate);
+      }
+
+      setInterval(() => {
+        explode(Math.random() * canvas.width, Math.random() * canvas.height / 2);
+      }, 800);
+      animate();
+    }
+
+    window.onload = startSequence;
+  </script>
+</body>
+</html>
